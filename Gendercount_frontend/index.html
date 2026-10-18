@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/icon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f9f8fd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0b16" media="(prefers-color-scheme: dark)" />
+    <title>Gender Statistics Counter</title>
+    <meta name="description" content="Gender distribution analysis from images, videos and live camera feeds." />
+    <meta property="og:title" content="Gender Statistics Counter" />
+    <meta property="og:description" content="Gender distribution analysis from images, videos and live camera feeds." />
+    <meta property="og:type" content="website" />
+    <script>
+      // Apply the saved (or device) theme before the page renders, so it never flashes the wrong theme.
+      // The saved choice is written by src/hooks/use-theme.ts under the same "theme" key.
+      (function () {
+        var theme = null;
+        try { theme = localStorage.getItem("theme"); } catch (error) {}
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.classList.toggle("dark", theme === "dark");
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

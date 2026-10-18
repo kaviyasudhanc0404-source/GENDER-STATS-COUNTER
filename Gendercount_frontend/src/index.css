@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light theme */
+  :root {
+    --background: 250 40% 98%;
+    --foreground: 256 30% 12%;
+    --card: 0 0% 100%;
+    --muted: 255 30% 95%;
+    --muted-foreground: 252 10% 42%;
+    --border: 255 25% 89%;
+    --primary: 262 83% 58%;        /* violet: button gradient start */
+    --primary-end: 243 75% 59%;    /* indigo: button gradient end */
+    --primary-foreground: 0 0% 100%;
+    --accent: 263 70% 50%;         /* violet for text and icons on the page background */
+    --ring: 262 83% 58%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --glow-1: 262 90% 75%;
+    --glow-2: 243 90% 80%;
+    --glow-strength: 0.35;
+    --radius: 1rem;
+  }
+
+  /* Dark theme */
+  .dark {
+    --background: 256 30% 6%;
+    --foreground: 250 30% 96%;
+    --card: 256 25% 10%;
+    --muted: 256 18% 15%;
+    --muted-foreground: 250 12% 66%;
+    --border: 256 18% 20%;
+    --primary: 262 83% 58%;
+    --primary-end: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 255 92% 76%;
+    --ring: 255 92% 76%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --glow-1: 262 83% 45%;
+    --glow-2: 243 75% 40%;
+    --glow-strength: 0.3;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  /* Soft violet glow behind the page */
+  body {
+    @apply font-sans text-foreground antialiased;
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(60rem 36rem at 0% -10%, hsl(var(--glow-1) / var(--glow-strength)), transparent 65%),
+      radial-gradient(50rem 32rem at 100% -5%, hsl(var(--glow-2) / var(--glow-strength)), transparent 60%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    overscroll-behavior-x: none; /* horizontal swipes switch modes instead of navigating back/forward */
+  }
+
+  /* Faint dot grid that fades out towards the bottom of the screen */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 75%);
+  }
+}
+
+@layer components {
+  /* Frosted glass surface used by all panels */
+  .card {
+    @apply rounded-3xl border bg-card/70 shadow-[0_10px_40px_-18px_hsl(var(--primary)/0.35)] backdrop-blur-xl dark:shadow-none;
+  }
+}

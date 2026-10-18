@@ -1,0 +1,33 @@
+# Datasets are too large for GitHub (over 100 MB)
+DATASETS/
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.tsbuildinfo
+*.local
+
+# Environment files (copy the .env.example files instead)
+.env
+.env.*
+!.env.example
+
+# Deployment tools
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
