@@ -1,0 +1,105 @@
+{
+  "base_model": "gender_mobilenetv3_model.pth",
+  "architecture": "mobilenet_v3_large, classifier[3] -> 2 classes",
+  "classes": [
+    "female",
+    "male"
+  ],
+  "female_threshold": 0.48,
+  "best_epoch": 6,
+  "face_crop": {
+    "detector": "YuNet 2023mar",
+    "align": "eyes level",
+    "margin_x": 0.1,
+    "margin_top": 0.1,
+    "margin_bottom": 0.05,
+    "input_size": 224
+  },
+  "fairface_validation": {
+    "before": {
+      "East Asian": {
+        "accuracy": 0.721,
+        "men": 0.8952,
+        "women": 0.5491
+      },
+      "Indian": {
+        "accuracy": 0.6733,
+        "men": 0.9166,
+        "women": 0.4337
+      },
+      "Black": {
+        "accuracy": 0.6386,
+        "men": 0.9397,
+        "women": 0.3262
+      },
+      "White": {
+        "accuracy": 0.7413,
+        "men": 0.9267,
+        "women": 0.5275
+      },
+      "Middle Eastern": {
+        "accuracy": 0.8057,
+        "men": 0.9404,
+        "women": 0.5305
+      },
+      "Latino_Hispanic": {
+        "accuracy": 0.7232,
+        "men": 0.9106,
+        "women": 0.5445
+      },
+      "Southeast Asian": {
+        "accuracy": 0.6951,
+        "men": 0.8939,
+        "women": 0.4812
+      },
+      "ALL": {
+        "accuracy": 0.7129,
+        "men": 0.9186,
+        "women": 0.484
+      }
+    },
+    "after": {
+      "East Asian": {
+        "accuracy": 0.9272,
+        "men": 0.9167,
+        "women": 0.9377
+      },
+      "Indian": {
+        "accuracy": 0.9125,
+        "men": 0.9152,
+        "women": 0.9098
+      },
+      "Black": {
+        "accuracy": 0.8477,
+        "men": 0.8768,
+        "women": 0.8176
+      },
+      "White": {
+        "accuracy": 0.919,
+        "men": 0.9203,
+        "women": 0.9175
+      },
+      "Middle Eastern": {
+        "accuracy": 0.9425,
+        "men": 0.9404,
+        "women": 0.9467
+      },
+      "Latino_Hispanic": {
+        "accuracy": 0.9277,
+        "men": 0.9157,
+        "women": 0.9391
+      },
+      "Southeast Asian": {
+        "accuracy": 0.9211,
+        "men": 0.9176,
+        "women": 0.9248
+      },
+      "ALL": {
+        "accuracy": 0.9133,
+        "men": 0.915,
+        "women": 0.9113
+      }
+    }
+  },
+  "original_58k_validation": null
+}
