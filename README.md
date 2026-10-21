@@ -21,6 +21,7 @@ Upload a photo or video, or turn on your camera. The app finds every face, predi
 | Backend | Python, FastAPI, OpenCV, NumPy, Pydantic |
 | Model training | PyTorch, torchvision, Kaggle (Tesla T4 GPU) |
 | Model runtime | ONNX models run with OpenCV (no PyTorch needed on the server) |
+| Hosting | FastAPI Cloud (backend), Vercel (frontend) |
 
 ## Project Flow
 
@@ -142,7 +143,8 @@ GENDER-STATS-COUNTER/
 │   │   ├── schemas.py     # API response formats
 │   │   └── config.py      # Settings (can be changed in a .env file)
 │   ├── models/            # The three ONNX model files + model settings (.json)
-│   └── Dockerfile         # Container for Hugging Face Spaces
+│   ├── requirements.txt   # Python packages
+│   └── .python-version    # Python version used by FastAPI Cloud
 ├── Gendercount_frontend/
 │   ├── src/
 │   │   ├── components/    # Upload, camera, results and sign-in screens
@@ -183,33 +185,28 @@ Open http://localhost:8080 in your browser.
 
 ## Deployment
 
-The backend runs on **Hugging Face Spaces** (Docker) and the frontend on **Vercel**. Deploy the backend first, because the frontend needs its URL.
+The backend runs on **FastAPI Cloud** and the frontend on **Vercel**. Both deploy straight from this GitHub repository and redeploy automatically on every push to `main`. Deploy the backend first, because the frontend needs its URL.
 
-### 1. Backend on Hugging Face Spaces
+### 1. Backend on FastAPI Cloud
 
-1. Create a new Space at [huggingface.co/new-space](https://huggingface.co/new-space): choose **Docker** → **Blank**, with the free **CPU basic** hardware.
-2. Upload the backend folder from the project root. Use a **Write** token from [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) when logging in:
+1. Sign up at [fastapicloud.com](https://fastapicloud.com) (the free **Hobby** plan is enough).
+2. In the dashboard, create a new app, choose **GitHub Repo**, and select this repository.
+3. Set **Root Directory** to `Gendercount_backend`, then click **Create App**.
 
-   ```powershell
-   pip install -U huggingface_hub
-   hf auth login
-   python -c "from huggingface_hub import upload_folder; upload_folder(repo_id='<username>/<space-name>', repo_type='space', folder_path='Gendercount_backend', ignore_patterns=['venv/*', '**/__pycache__/*', '.env', '*.ps1'])"
-   ```
-
-3. The Space builds the Docker image and starts the API. When it shows **Running**, open `https://<username>-<space-name>.hf.space/health`. It should return `{"status":"ok"}`.
+FastAPI Cloud installs `requirements.txt` with the Python version in `.python-version`, then finds and starts the app in `app/main.py` on its own. When the deployment is ready, open `https://<app-name>.fastapicloud.dev/health`. It should return `{"status":"ok"}`.
 
 ### 2. Frontend on Vercel
 
 1. Import the GitHub repository at [vercel.com/new](https://vercel.com/new) and set **Root Directory** to `Gendercount_frontend`. Vercel detects Vite automatically.
-2. Under **Environment Variables**, add `VITE_API_URL` (your Space URL from step 1) and the four `VITE_FIREBASE_*` values from `.env.example`.
+2. Under **Environment Variables**, add `VITE_API_URL` (your FastAPI Cloud URL from step 1, without a trailing `/`) and the four `VITE_FIREBASE_*` values from `.env.example`.
 3. Click **Deploy**.
 
 ### 3. Connect them
 
-1. **Allow the frontend to call the backend:** in the Space, open **Settings → Variables and secrets** and add the variable `CORS_ORIGINS` with your Vercel URL, for example `https://gender-stats-counter.vercel.app`. The Space restarts automatically.
+1. **Allow the frontend to call the backend:** in the FastAPI Cloud dashboard, open your app → **Environment Variables**, add `CORS_ORIGINS` with your Vercel URL (for example `https://gender-stats-counter.vercel.app`), and click **Save and Redeploy**.
 2. **Allow sign-in on the new domain:** in the Firebase console, open **Authentication → Settings → Authorized domains** and add your Vercel domain.
 
-Free Spaces go to sleep after 48 hours without use. The first request after that takes about a minute while the Space wakes up.
+On the free plan, the backend sleeps when nobody is using it and wakes up in a few seconds on the next request. It runs on a small share of a CPU, so analysis is slower than on a local machine.
 
 ## API
 
