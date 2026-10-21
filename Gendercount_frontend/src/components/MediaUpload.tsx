@@ -173,15 +173,15 @@ const MediaUpload = (props: MediaUploadProps) => {
               {file.name}
             </span>
           </p>
-          <Button variant="outline" size="icon" onClick={() => onFileChange(null)} disabled={isProcessing} aria-label={`Remove ${kind}`}>
+          <Button variant="softDestructive" size="icon" onClick={() => onFileChange(null)} disabled={isProcessing} aria-label={`Remove ${kind}`}>
             <X />
           </Button>
-          <Button variant="outline" onClick={browse} disabled={isProcessing}>
+          <Button variant="softSuccess" onClick={browse} disabled={isProcessing}>
             <RefreshCw />
             Change
           </Button>
           {isProcessing ? (
-            <Button key="cancel" variant="outline" onClick={onCancel} className="flex-1 sm:flex-none">
+            <Button key="cancel" variant="softDestructive" onClick={onCancel} className="flex-1 sm:flex-none">
               <X />
               Cancel
             </Button>

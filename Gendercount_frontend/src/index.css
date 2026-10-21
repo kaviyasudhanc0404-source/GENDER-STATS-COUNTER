@@ -20,6 +20,7 @@
     --ring: 262 83% 58%;
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
+    --success: 152 69% 33%;        /* green for positive actions */
     --glow-1: 262 90% 75%;
     --glow-2: 243 90% 80%;
     --glow-strength: 0.35;
@@ -41,6 +42,7 @@
     --ring: 255 92% 76%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 52%;
     --glow-1: 262 83% 45%;
     --glow-2: 243 75% 40%;
     --glow-strength: 0.3;

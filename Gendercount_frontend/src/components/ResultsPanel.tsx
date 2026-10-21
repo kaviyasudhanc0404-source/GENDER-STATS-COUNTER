@@ -88,7 +88,8 @@ const ResultsPanel = ({ counts, view, isProcessing }: ResultsPanelProps) => {
         <Status view={view} isProcessing={isProcessing} />
       </div>
 
-      <div className="mt-5 flex items-center gap-5 sm:gap-6 lg:flex-col lg:items-stretch">
+      {/* Ring beside the counts, except on very small phones and in the narrow desktop sidebar where they stack */}
+      <div className="mt-5 flex flex-col gap-5 xs:flex-row xs:items-center sm:gap-6 lg:flex-col lg:items-stretch">
         <div className="flex justify-center">
           <GenderRing counts={counts} share={share} />
         </div>

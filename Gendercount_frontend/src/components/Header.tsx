@@ -27,9 +27,9 @@ const Header = ({ mode, onModeChange, theme, onToggleTheme, onSignOut }: HeaderP
           <span className="hidden font-semibold tracking-tight min-[400px]:inline">Gender Statistics Counter</span>
         </div>
 
-        <ModeTabs activeMode={mode} onModeChange={onModeChange} className="order-last w-full sm:order-none sm:ml-auto sm:w-auto" />
+        <ModeTabs activeMode={mode} onModeChange={onModeChange} className="order-last w-full lg:order-none lg:ml-auto lg:w-auto" />
 
-        <div className="ml-auto flex items-center gap-2 sm:ml-0">
+        <div className="ml-auto flex items-center gap-2 lg:ml-0">
           {user === null && (
             <>
               <Button variant="outline" onClick={() => openAuth("login")} className="h-9 px-4">

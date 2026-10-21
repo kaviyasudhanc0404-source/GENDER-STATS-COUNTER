@@ -1,9 +1,13 @@
 import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 export default {
   darkMode: "class",
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
+    // `xs` separates very small phones (320–359 px, e.g. iPhone SE) from regular ones. It must come first,
+    // so it is listed before the default breakpoints instead of being added through `extend`.
+    screens: { xs: "360px", ...defaultTheme.screens },
     container: {
       center: true,
       padding: "1rem",
@@ -27,6 +31,7 @@ export default {
           foreground: "hsl(var(--primary-foreground))",
         },
         accent: "hsl(var(--accent))",
+        success: "hsl(var(--success))",
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",

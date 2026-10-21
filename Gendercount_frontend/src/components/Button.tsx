@@ -6,6 +6,10 @@ const VARIANTS = {
     "bg-gradient-to-r from-primary to-primary-end text-primary-foreground shadow-lg shadow-primary/30 hover:brightness-110",
   destructive: "bg-destructive text-destructive-foreground shadow-lg shadow-destructive/25 hover:brightness-110",
   outline: "border bg-card/70 text-foreground backdrop-blur hover:bg-muted",
+  // Tinted secondary actions that sit next to a primary button
+  softSuccess: "border border-success/30 bg-success/10 text-success hover:border-success/50 hover:bg-success/20",
+  softDestructive:
+    "border border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground",
 };
 
 const SIZES = {

@@ -19,14 +19,15 @@ const ModeTabs = ({ activeMode, onModeChange, className }: ModeTabsProps) => (
           onClick={() => onModeChange(mode)}
           aria-pressed={isActive}
           className={cn(
-            "flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all sm:flex-none",
+            "flex flex-1 items-center justify-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-all sm:px-4 lg:flex-none",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             isActive
               ? "bg-gradient-to-r from-primary to-primary-end text-primary-foreground shadow-md shadow-primary/30"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          <Icon className="h-4 w-4 shrink-0" />
+          {/* Icons are dropped on very small phones so all three tabs fit */}
+          <Icon className="hidden h-4 w-4 shrink-0 xs:block" />
           {label}
         </button>
       );
