@@ -19,10 +19,17 @@ logger = logging.getLogger(__name__)
 
 
 def decode_image(data: bytes) -> np.ndarray:
-    """Decode image bytes into an upright BGR array (honours EXIF orientation)."""
+    """
+    Decode image bytes into an upright BGR array (honours EXIF orientation), at most MAX_IMAGE_SIDE pixels
+    on the longer side. JPEGs are decoded straight at the reduced size, so a 50 MP photo never sits in memory.
+    """
+    limit = (config.MAX_IMAGE_SIDE, config.MAX_IMAGE_SIDE)
     try:
         with Image.open(io.BytesIO(data)) as image:
-            rgb = ImageOps.exif_transpose(image).convert("RGB")
+            image.draft("RGB", limit)  # JPEG only: decode at a reduced scale (no-op for other formats)
+            upright = ImageOps.exif_transpose(image)
+            upright.thumbnail(limit, Image.Resampling.LANCZOS)
+            rgb = upright.convert("RGB")
     except (UnidentifiedImageError, OSError) as error:
         raise ValueError("The file is not a valid image") from error
     return cv2.cvtColor(np.asarray(rgb), cv2.COLOR_RGB2BGR)

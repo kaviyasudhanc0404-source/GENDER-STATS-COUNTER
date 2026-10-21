@@ -31,13 +31,14 @@ FACE_RECOGNIZER_PATH = MODELS_DIR / "face_recognition_sface_2021dec.onnx"
 FACE_SCORE_THRESHOLD = _env("FACE_SCORE_THRESHOLD", 0.7, float)
 MIN_FACE_SIZE = _env("MIN_FACE_SIZE", 20, int)            # pixels; smaller faces are unreliable
 DETECTION_MAX_SIDE = _env("DETECTION_MAX_SIDE", 1280, int)  # images are downscaled to this for detection
+MAX_IMAGE_SIDE = _env("MAX_IMAGE_SIDE", 2560, int)  # uploads are decoded at most this size (limits server memory)
 
 # Gender classification: faces are rotated so the eyes are level and the detected box is padded
 # slightly (fractions of the box size) – must match MODEL_DETAILS/notebooks/finetune-gender-fairface.ipynb.
 FACE_MARGIN_X = 0.10
 FACE_MARGIN_TOP = 0.10
 FACE_MARGIN_BOTTOM = 0.05
-CLASSIFIER_BATCH_SIZE = 32
+CLASSIFIER_BATCH_SIZE = 8  # faces per model run; larger batches cost far more memory (32 faces at once: ~500 MB peak)
 
 # Video analysis
 VIDEO_SAMPLE_FPS = _env("VIDEO_SAMPLE_FPS", 3.0, float)
