@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { GENDER_STYLES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import type { DetectedFace } from "@/services/api";
+import type { DetectedFace, TrackedFace } from "@/services/api";
 
-const FULL_LABEL_MIN_WIDTH = 64; // px; narrower boxes get a one-letter label so labels don't overlap
+const FULL_LABEL_MIN_WIDTH = 64; // px; narrower boxes get a short label so labels don't overlap
 
 const percent = (fraction: number) => `${fraction * 100}%`;
 
-/** Draws labelled face boxes; must be placed inside the MediaFrame that holds the analysed media. */
-const FaceOverlay = ({ faces }: { faces: DetectedFace[] }) => {
+/**
+ * Draws labelled face boxes (with the person number for video faces);
+ * must be placed inside the MediaFrame that holds the analysed media.
+ */
+const FaceOverlay = ({ faces }: { faces: (DetectedFace | TrackedFace)[] }) => {
   const layerRef = useRef<HTMLDivElement>(null);
   const [layerWidth, setLayerWidth] = useState(0);
 
@@ -22,12 +25,14 @@ const FaceOverlay = ({ faces }: { faces: DetectedFace[] }) => {
 
   return (
     <div ref={layerRef} className="pointer-events-none absolute inset-0">
-      {faces.map(({ box, gender, confidence }, index) => {
+      {faces.map((face, index) => {
+        const { box, gender, confidence } = face;
         const { label, color } = GENDER_STYLES[gender];
+        const person = "person" in face ? `#${face.person}` : null;
         const showFullLabel = box.width * layerWidth >= FULL_LABEL_MIN_WIDTH;
         return (
           <div
-            key={index}
+            key={person ?? index}
             className="absolute rounded-sm border-2"
             style={{ left: percent(box.x), top: percent(box.y), width: percent(box.width), height: percent(box.height), borderColor: color }}
           >
@@ -38,7 +43,9 @@ const FaceOverlay = ({ faces }: { faces: DetectedFace[] }) => {
               )}
               style={{ backgroundColor: color }}
             >
-              {showFullLabel ? `${label} ${Math.round(confidence * 100)}%` : label[0]}
+              {showFullLabel
+                ? [person, label, `${Math.round(confidence * 100)}%`].filter(Boolean).join(" ")
+                : (person ?? label[0])}
             </span>
           </div>
         );

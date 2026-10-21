@@ -26,6 +26,7 @@ class Person:
     last_seen: int
     gallery: list[np.ndarray] = field(default_factory=list)  # fingerprints from different angles
     votes: Counter = field(default_factory=Counter)          # gender -> summed confidence
+    female_probability: float = 0.0                          # summed over all sightings
     sightings: int = 0
 
     GALLERY_SIZE = 10
@@ -46,11 +47,18 @@ class Person:
         self.box = sighting.box
         self.last_seen = frame
         self.votes[sighting.gender] += sighting.confidence
+        self.female_probability += sighting.confidence if sighting.gender == "female" else 1 - sighting.confidence
         self.sightings += 1
 
     @property
     def gender(self) -> Gender:
         return self.votes.most_common(1)[0][0]
+
+    @property
+    def confidence(self) -> float:
+        """Average probability of the final gender over all sightings."""
+        female = self.female_probability / self.sightings
+        return round(female if self.gender == "female" else 1 - female, 3)
 
 
 class PersonTracker:
@@ -68,6 +76,7 @@ class PersonTracker:
         self._max_gap = max_gap
         self._max_move = max_move
         self._people: list[Person] = []
+        self._appearances: list[list[tuple[int, np.ndarray]]] = []  # per sampled frame: (person index, face box)
 
     def _matches(self, person: Person, sighting: Sighting, frame: int, similarity: float) -> bool:
         if similarity >= self._reid_threshold:
@@ -88,10 +97,12 @@ class PersonTracker:
                 if self._matches(person, sighting, frame, similarity):
                     candidates.append((similarity, s, p))
 
+        appearances = []
         assigned_sightings, assigned_people = set(), set()
         for _, s, p in sorted(candidates, reverse=True):
             if s not in assigned_sightings and p not in assigned_people:
                 self._people[p].add(sightings[s], frame)
+                appearances.append((p, sightings[s].box))
                 assigned_sightings.add(s)
                 assigned_people.add(p)
 
@@ -99,8 +110,22 @@ class PersonTracker:
             if s not in assigned_sightings:
                 person = Person(box=sighting.box, last_seen=frame)
                 person.add(sighting, frame)
+                appearances.append((len(self._people), sighting.box))
                 self._people.append(person)
 
-    def genders(self, min_sightings: int) -> list[Gender]:
-        """Majority-vote gender of every person seen at least `min_sightings` times."""
-        return [person.gender for person in self._people if person.sightings >= min_sightings]
+        self._appearances.append(appearances)
+
+    def timeline(self, min_sightings: int) -> tuple[list[Person], list[list[tuple[int, Person, np.ndarray]]]]:
+        """
+        The people seen in at least `min_sightings` sampled frames, in order of first appearance, and for every
+        sampled frame which of them are visible: (person number starting at 1, person, face box in pixels).
+        """
+        numbers = {}
+        for index, person in enumerate(self._people):
+            if person.sightings >= min_sightings:
+                numbers[index] = len(numbers) + 1
+        frames = [
+            [(numbers[index], self._people[index], box) for index, box in appearances if index in numbers]
+            for appearances in self._appearances
+        ]
+        return [self._people[index] for index in numbers], frames

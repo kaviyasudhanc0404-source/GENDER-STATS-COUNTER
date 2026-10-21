@@ -20,6 +20,17 @@ export interface DetectedFace {
   confidence: number;
 }
 
+/** A face in a video, labelled with the person it belongs to (numbered from 1 in order of first appearance). */
+export interface TrackedFace extends DetectedFace {
+  person: number;
+}
+
+/** One analysed video frame and the counted people visible in it. */
+export interface VideoFrame {
+  time: number; // seconds from the start of the video
+  faces: TrackedFace[];
+}
+
 export interface GenderCounts {
   male: number;
   female: number;
@@ -33,6 +44,7 @@ interface ImageDetection extends GenderCounts {
 export interface VideoDetection extends GenderCounts {
   frames_analyzed: number;
   duration_seconds: number;
+  frames: VideoFrame[]; // sorted by time
 }
 
 export const EMPTY_COUNTS: GenderCounts = { male: 0, female: 0, total: 0 };

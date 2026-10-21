@@ -10,12 +10,11 @@ export const MEDIA_AREA_CLASS = "min-h-72 rounded-[1.75rem] sm:min-h-[26rem]";
 
 /**
  * Frame that centres a single image or video. The inner wrapper shrinks to the media's displayed size,
- * so absolutely positioned overlays line up with it exactly; `fill` stretches it to the frame width instead
- * (for media without overlays, such as an uploaded video).
+ * so absolutely positioned overlays (face boxes) line up with it exactly.
  */
-const MediaFrame = ({ children, fill = false }: { children: ReactNode; fill?: boolean }) => (
+const MediaFrame = ({ children }: { children: ReactNode }) => (
   <div className={cn("flex items-center justify-center overflow-hidden bg-muted/60", MEDIA_AREA_CLASS)}>
-    <div className={cn("relative min-w-0 max-w-full", fill && "w-full")}>{children}</div>
+    <div className="relative min-w-0 max-w-full">{children}</div>
   </div>
 );
 

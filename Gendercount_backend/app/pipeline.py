@@ -12,7 +12,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 
 from app import config
 from app.models import FaceDetector, FaceEmbedder, GenderClassifier
-from app.schemas import BoundingBox, Face, Gender, GenderCounts, ImageDetection, VideoDetection
+from app.schemas import BoundingBox, Face, Gender, GenderCounts, ImageDetection, TrackedFace, VideoDetection, VideoFrame
 from app.tracker import PersonTracker, Sighting
 
 logger = logging.getLogger(__name__)
@@ -47,11 +47,11 @@ def align_face(image: np.ndarray, face: np.ndarray) -> np.ndarray:
 
 
 def normalized_box(face: np.ndarray, image_width: int, image_height: int) -> BoundingBox:
-    """Face box clipped to the image, as fractions of the image size."""
-    x, y, width, height = face[:4]
+    """Face box clipped to the image, as fractions of the image size (3 decimals: about 2 px on a 1920 px image)."""
+    x, y, width, height = (float(value) for value in face[:4])
     x1, y1 = max(0.0, x / image_width), max(0.0, y / image_height)
     x2, y2 = min(1.0, (x + width) / image_width), min(1.0, (y + height) / image_height)
-    return BoundingBox(x=x1, y=y1, width=x2 - x1, height=y2 - y1)
+    return BoundingBox(x=round(x1, 3), y=round(y1, 3), width=round(x2 - x1, 3), height=round(y2 - y1, 3))
 
 
 class GenderPipeline:
@@ -83,7 +83,10 @@ class GenderPipeline:
         return ImageDetection(**GenderCounts.tally(face.gender for face in faces), faces=faces)
 
     def analyze_video(self, path: str, cancel: threading.Event) -> VideoDetection:
-        """Sample frames, recognise faces across them and count each person once."""
+        """
+        Sample frames, recognise faces across them and count each person once. Also returns where every counted
+        person appears in each sampled frame, so clients can replay the video with labelled face boxes.
+        """
         capture = cv2.VideoCapture(path)
         if not capture.isOpened():
             raise ValueError("The file is not a readable video")
@@ -96,30 +99,44 @@ class GenderPipeline:
             max_gap=round(config.TRACK_MAX_MISSING_SECONDS * fps / step),
             max_move=config.TRACK_MAX_MOVE,
         )
-        frame_index = frames_analyzed = 0
+        frame_index = 0
+        frame_times = []  # seconds from the start, one per sampled frame
         try:
             # grab() skips frames cheaply; only sampled frames are decoded
             while not cancel.is_set() and capture.grab():
                 if frame_index % step == 0:
                     decoded, frame = capture.retrieve()
                     if decoded:
+                        frame_height, frame_width = frame.shape[:2]
                         detections, predictions = self.classify_faces(frame)
                         embeddings = self.embedder.embed(frame, detections)
-                        tracker.update(frames_analyzed, [
+                        tracker.update(len(frame_times), [
                             Sighting(box=face[:4], embedding=embedding, gender=gender, confidence=confidence)
                             for face, embedding, (gender, confidence) in zip(detections, embeddings, predictions)
                         ])
-                        frames_analyzed += 1
+                        frame_times.append(frame_index / fps)
                 frame_index += 1
         finally:
             capture.release()
 
-        if frames_analyzed == 0:
+        if not frame_times:
             raise ValueError("The video has no readable frames")
 
-        genders = tracker.genders(min_sightings=min(config.TRACK_MIN_SIGHTINGS, frames_analyzed))
+        people, appearances = tracker.timeline(min_sightings=min(config.TRACK_MIN_SIGHTINGS, len(frame_times)))
         return VideoDetection(
-            **GenderCounts.tally(genders),
-            frames_analyzed=frames_analyzed,
+            **GenderCounts.tally(person.gender for person in people),
+            frames_analyzed=len(frame_times),
             duration_seconds=round(frame_index / fps, 2),
+            frames=[
+                VideoFrame(time=round(time, 2), faces=[
+                    TrackedFace(
+                        box=normalized_box(box, frame_width, frame_height),
+                        gender=person.gender,
+                        confidence=person.confidence,
+                        person=number,
+                    )
+                    for number, person, box in visible
+                ])
+                for time, visible in zip(frame_times, appearances)
+            ],
         )

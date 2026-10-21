@@ -11,6 +11,7 @@ Upload a photo or video, or turn on your camera. The app finds every face, predi
 - **Statistics:** male, female and total counts with a distribution chart
 - **Download** the analysed image with the boxes and counts drawn on it
 - **Unique counting in video:** the same person is never counted twice
+- **Video replay:** play the analysed video to see a numbered box on every counted person
 - **User accounts:** sign in with Google or email and password (Firebase) before analysing
 
 ## Tech Stack
@@ -35,7 +36,7 @@ flowchart LR
     E --> F[3. MobileNetV3<br>predicts gender]
     F -->|video only| G[4. SFace<br>recognises people<br>across frames]
     F -->|image / camera| H[Counts + face boxes]
-    G --> J[Counts of<br>unique people]
+    G --> J[Counts of unique people<br>+ numbered face boxes]
     H -->|JSON result| B
     J -->|JSON result| B
     B --> I[Counts, chart<br>and face boxes on screen]
@@ -48,7 +49,7 @@ flowchart LR
 3. **Align and crop:** each face is rotated so the eyes are level, then cropped with a small margin. This is exactly how the training images were prepared, so the model sees the same kind of input it learned from.
 4. **Predict gender:** the MobileNetV3 model classifies each face. The face and its mirror image are both checked and the two results are averaged, which makes predictions more stable.
 5. **Count people (videos only):** the SFace model gives each face a "fingerprint", which is used to tell whether a face belongs to someone already counted.
-6. **Send the result:** the backend returns the counts (and face boxes for images) as JSON.
+6. **Send the result:** the backend returns the counts and the face boxes as JSON. For videos, the boxes come with the time of each checked frame and the number of the person each face belongs to.
 
 ### What happens in each mode
 
@@ -66,7 +67,8 @@ The user must **sign in first** (Google or email). If they try to upload a file 
 3. Faces in each checked frame go through steps 2–5 above, and the tracker builds a list of unique people.
 4. People seen in only one checked frame are ignored, to avoid counting false detections.
 5. The screen shows the number of unique men and women, how many frames were checked, and the video length.
-6. If the user cancels or leaves the page, the backend stops processing the video straight away.
+6. When the user presses play, every counted person gets a box with their number, gender and confidence (for example "#3 Female 94%"), following the video as it plays, pauses or skips. A person who leaves and comes back keeps the same number.
+7. If the user cancels or leaves the page, the backend stops processing the video straight away.
 
 **Live camera mode**
 1. The user clicks **Start camera**, and the browser asks for permission to use it.
@@ -214,7 +216,7 @@ On the free plan, the backend sleeps when nobody is using it and wakes up in a f
 |---|---|---|---|
 | GET | `/health` | none | Server status |
 | POST | `/detect/image` | Image file (JPG, PNG, WEBP, max 10 MB) | Counts and a box for every face |
-| POST | `/detect/video` | Video file (MP4, WEBM, MOV, AVI, max 200 MB) | Counts of unique people, frames analysed, video length |
+| POST | `/detect/video` | Video file (MP4, WEBM, MOV, AVI, max 200 MB) | Counts of unique people, frames analysed, video length, and the numbered face boxes of every analysed frame |
 
 Example response from `/detect/image`:
 

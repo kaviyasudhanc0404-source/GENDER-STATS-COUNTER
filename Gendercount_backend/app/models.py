@@ -80,7 +80,7 @@ class GenderClassifier:
         for start in range(0, len(faces), self._batch_size):
             batch = np.stack([self._preprocess(face) for face in faces[start:start + self._batch_size]])
             female = (self._female_probability(batch) + self._female_probability(np.ascontiguousarray(batch[..., ::-1]))) / 2
-            predictions += [("female", float(p)) if p >= self._female_threshold else ("male", float(1 - p)) for p in female]
+            predictions += [("female", round(float(p), 3)) if p >= self._female_threshold else ("male", round(float(1 - p), 3)) for p in female]
         return predictions
 
 

@@ -23,6 +23,17 @@ class Face(BaseModel):
     confidence: float = Field(ge=0, le=1)
 
 
+class TrackedFace(Face):
+    """A face in a video, labelled with the person it belongs to (numbered from 1 in order of first appearance)."""
+    person: int = Field(ge=1)
+
+
+class VideoFrame(BaseModel):
+    """One analysed video frame and the counted people visible in it."""
+    time: float  # seconds from the start of the video
+    faces: list[TrackedFace]
+
+
 class GenderCounts(BaseModel):
     male: int
     female: int
@@ -41,6 +52,7 @@ class ImageDetection(GenderCounts):
 class VideoDetection(GenderCounts):
     frames_analyzed: int
     duration_seconds: float
+    frames: list[VideoFrame]
 
 
 class Health(BaseModel):

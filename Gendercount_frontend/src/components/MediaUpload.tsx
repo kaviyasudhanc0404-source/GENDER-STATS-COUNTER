@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent, type ReactNode } from "react";
+import { useRef, useState, type DragEvent, type ReactNode, type SyntheticEvent } from "react";
 import { Download, FileImage, FileVideo, ImageUp, Loader2, RefreshCw, ScanFace, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import Button from "@/components/Button";
@@ -8,19 +8,30 @@ import { useAuth } from "@/hooks/use-auth";
 import { downloadBlob, renderAnnotatedImage } from "@/lib/annotate";
 import { UPLOAD_EXTENSIONS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import type { DetectedFace } from "@/services/api";
+import type { DetectedFace, TrackedFace, VideoFrame } from "@/services/api";
 
 interface MediaUploadProps {
   kind: "image" | "video";
   file: File | null;
   previewUrl: string | null;
-  faces: DetectedFace[] | null; // detection result drawn over the image
+  faces: DetectedFace[] | null; // image result drawn over the photo
+  frames: VideoFrame[] | null; // video result drawn over the video while it plays
   isProcessing: boolean;
   navigation: ReactNode; // mode arrows shown on the empty drop zone
   onFileChange: (file: File | null) => void;
   onDetect: () => void;
   onCancel: () => void;
 }
+
+/** Faces of the analysed frame nearest to `time` seconds into the video (frames are sorted by time). */
+const facesAt = (frames: VideoFrame[], time: number): TrackedFace[] => {
+  let nearest: VideoFrame | undefined;
+  for (const frame of frames) {
+    if (nearest && Math.abs(frame.time - time) >= Math.abs(nearest.time - time)) break;
+    nearest = frame;
+  }
+  return nearest?.faces ?? [];
+};
 
 /** Round icon in the corner of the analysed photo's frame; saves it at full resolution with face boxes and counts. */
 const DownloadButton = ({ src, fileName, faces }: { src: string; fileName: string; faces: DetectedFace[] }) => {
@@ -54,9 +65,11 @@ const DownloadButton = ({ src, fileName, faces }: { src: string; fileName: strin
 
 /** Workspace for image/video: drop zone -> preview -> analysed result, all in the same place. */
 const MediaUpload = (props: MediaUploadProps) => {
-  const { kind, file, previewUrl, faces, isProcessing, navigation, onFileChange, onDetect, onCancel } = props;
+  const { kind, file, previewUrl, faces, frames, isProcessing, navigation, onFileChange, onDetect, onCancel } = props;
   const { requireAuth } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
+  const [videoTime, setVideoTime] = useState(0); // seconds; follows playback and seeking
+  const overlayFaces = kind === "image" ? faces : frames && facesAt(frames, videoTime);
   const inputRef = useRef<HTMLInputElement>(null);
   const extensions = UPLOAD_EXTENSIONS[kind];
   const formats = extensions.map((extension) => extension.slice(1).toUpperCase());
@@ -72,6 +85,8 @@ const MediaUpload = (props: MediaUploadProps) => {
   };
 
   const browse = () => requireAuth(() => inputRef.current?.click());
+
+  const syncVideoTime = (event: SyntheticEvent<HTMLVideoElement>) => setVideoTime(event.currentTarget.currentTime);
 
   const handleDrag = (event: DragEvent, dragging: boolean) => {
     event.preventDefault();
@@ -103,13 +118,20 @@ const MediaUpload = (props: MediaUploadProps) => {
         className={cn("relative transition-shadow", MEDIA_AREA_CLASS, isDragging && "ring-2 ring-accent ring-offset-2 ring-offset-card")}
       >
         {previewUrl ? (
-          <MediaFrame fill={kind === "video"}>
+          <MediaFrame>
             {kind === "image" ? (
               <img src={previewUrl} alt="Selected image" className={MEDIA_CLASS} />
             ) : (
-              <video src={previewUrl} controls playsInline className={cn(MEDIA_CLASS, "w-full")} />
+              <video
+                src={previewUrl}
+                controls
+                playsInline
+                onLoadedMetadata={syncVideoTime}
+                onTimeUpdate={syncVideoTime}
+                className={MEDIA_CLASS}
+              />
             )}
-            {faces && <FaceOverlay faces={faces} />}
+            {overlayFaces && <FaceOverlay faces={overlayFaces} />}
             {isProcessing && <ProcessingOverlay message={kind === "image" ? "Analyzing photo..." : "Analyzing video..."} />}
           </MediaFrame>
         ) : (

@@ -120,6 +120,7 @@ const App = () => {
                   file={file}
                   previewUrl={previewUrl}
                   faces={view?.kind === "image" ? view.faces : null}
+                  frames={view?.kind === "video" ? view.result.frames : null}
                   isProcessing={isProcessing}
                   navigation={navigation}
                   onFileChange={changeFile}

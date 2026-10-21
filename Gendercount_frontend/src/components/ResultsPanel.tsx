@@ -26,7 +26,8 @@ const summary = (view: DetectionView | null, isProcessing: boolean, counts: Gend
   if (view.kind === "video") {
     const { duration_seconds, frames_analyzed } = view.result;
     const people = `${counts.total} unique ${counts.total === 1 ? "person" : "people"}`;
-    return `${people} in ${duration_seconds.toFixed(1)} s of video · ${frames_analyzed} frames analysed.`;
+    const replay = counts.total ? " Play the video to see each person." : "";
+    return `${people} in ${duration_seconds.toFixed(1)} s of video · ${frames_analyzed} frames analysed.${replay}`;
   }
   const faces = view.faces.length;
   return faces ? `${faces} ${faces === 1 ? "face" : "faces"} detected in the photo.` : "No faces found in this photo.";
